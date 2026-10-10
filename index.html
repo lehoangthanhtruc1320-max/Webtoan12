@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toán 12 Online - Cùng Học & Chia Sẻ Kiến Thức</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#2563eb',
+                            bluelight: '#3b82f6',
+                            sky: '#0284c7',
+                            softblue: '#eff6ff',
+                            pink: '#ec4899',
+                            pinkhover: '#db2777',
+                            softpink: '#fdf2f8',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar & glassmorphism animation */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #93c5fd;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .floating-math {
+            animation: float 6s ease-in-out infinite;
+        }
+        .floating-math-delayed {
+            animation: float 7s ease-in-out 2s infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-white to-pink-50 min-h-screen font-sans text-slate-800 flex flex-col justify-between">
+
+    <!-- Navigation Bar -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-blue-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="#" onclick="showSection('hero')" class="flex items-center gap-3 group">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-blue to-brand-pink flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <i class="fa-solid fa-square-root-variable text-2xl"></i>
+                </div>
+                <div>
+                    <span class="text-2xl font-black tracking-tight gradient-text">Toán 12</span>
+                    <span class="text-xs block font-semibold text-brand-pink tracking-wider uppercase">Học Dễ Dàng • Đạt Điểm Cao</span>
+                </div>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-1 bg-slate-100/80 p-1.5 rounded-full border border-slate-200">
+                <button onclick="showSection('hero')" id="nav-hero" class="px-5 py-2 rounded-full text-sm font-semibold transition-all text-brand-blue bg-white shadow-sm">
+                    <i class="fa-solid fa-house mr-1.5"></i> Trang chủ
+                </button>
+                <button onclick="showSection('chapters')" id="nav-chapters" class="px-5 py-2 rounded-full text-sm font-semibold text-slate-600 hover:text-brand-blue transition-all">
+                    <i class="fa-solid fa-book-open mr-1.5"></i> Danh sách bài học
+                </button>
+                <button onclick="showSection('contribute')" id="nav-contribute" class="px-5 py-2 rounded-full text-sm font-semibold text-slate-600 hover:text-brand-pink transition-all">
+                    <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Đóng góp bài
+                </button>
+            </nav>
+
+            <!-- User Auth Buttons -->
+            <div class="flex items-center gap-3">
+                <!-- Config Modal Button -->
+                <button onclick="toggleModal('config-modal')" class="p-2.5 rounded-full text-slate-400 hover:text-brand-blue hover:bg-blue-50 transition-colors" title="Cấu hình Firebase">
+                    <i class="fa-solid fa-gear text-lg"></i>
+                </button>
+
+                <!-- Unauthenticated View -->
+                <div id="auth-logged-out" class="flex items-center">
+                    <button onclick="handleGoogleSignIn()" class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-blue to-blue-600 text-white font-semibold text-sm shadow-md hover:shadow-lg hover:opacity-95 transition-all transform active:scale-95">
+                        <i class="fa-brands fa-google text-base"></i>
+                        <span>Đăng nhập Google</span>
+                    </button>
+                </div>
+
+                <!-- Authenticated View -->
+                <div id="auth-logged-in" class="hidden items-center gap-3">
+                    <div class="flex items-center gap-2 bg-blue-50/80 border border-blue-200 py-1 px-3 rounded-full">
+                        <img id="user-avatar" src="https://placehold.co/100x100/3b82f6/ffffff?text=U" alt="User Avatar" class="w-8 h-8 rounded-full border-2 border-brand-pink object-cover">
+                        <span id="user-name" class="text-sm font-bold text-slate-700 max-w-[120px] truncate">Học viên</span>
+                    </div>
+                    <button onclick="handleSignOut()" class="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" title="Đăng xuất">
+                        <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Body Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- SECTION 1: HERO / GIỚI THIỆU -->
+        <section id="section-hero" class="transition-all duration-300">
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-pink-500 p-8 sm:p-12 lg:p-16 text-white shadow-2xl mb-12">
+                <!-- Background Decorative Math Formulas -->
+                <div class="absolute -top-6 -left-6 text-white/10 text-8xl font-black floating-math select-none pointer-events-none">∫ f(x)dx</div>
+                <div class="absolute bottom-4 right-12 text-white/10 text-9xl font-black floating-math-delayed select-none pointer-events-none">lim y</div>
+                <div class="absolute top-1/2 right-1/4 text-white/10 text-7xl font-black floating-math select-none pointer-events-none">log_a(x)</div>
+
+                <div class="relative z-10 grid md:grid-cols-12 gap-8 items-center">
+                    <div class="md:col-span-7 text-center md:text-left space-y-6">
+                        <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold tracking-wider uppercase text-pink-100 border border-white/20">
+                            <i class="fa-solid fa-sparkles text-yellow-300"></i> Nền tảng ôn thi THPT Quốc Gia Toán 12
+                        </span>
+                        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
+                            Học Toán 12 Trực Tuyến <br class="hidden sm:block">
+                            <span class="text-pink-200 underline decoration-pink-400 decoration-wavy">Dễ Hiểu & Đam Mê!</span>
+                        </h1>
+                        <p class="text-blue-100 text-base sm:text-lg max-w-2xl font-light">
+                            Kho tài liệu bài giảng, lý thuyết, dạng bài tập tự luận và trắc nghiệm Toán 12 hoàn toàn miễn phí. Đóng góp bài học hay và chia sẻ kiến thức cùng cộng đồng học sinh toàn quốc!
+                        </p>
+                        <div class="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
+                            <button onclick="showSection('chapters')" class="px-8 py-4 rounded-2xl bg-white text-brand-blue font-bold text-base shadow-xl hover:bg-blue-50 transition-all transform hover:-translate-y-1 active:translate-y-0">
+                                <i class="fa-solid fa-graduation-cap mr-2 text-brand-pink"></i> Khám phá bài học ngay
+                            </button>
+                            <button onclick="showSection('contribute')" class="px-8 py-4 rounded-2xl bg-brand-pink text-white font-bold text-base shadow-xl hover:bg-brand-pinkhover transition-all transform hover:-translate-y-1 active:translate-y-0 border border-pink-300/30">
+                                <i class="fa-solid fa-plus-circle mr-2"></i> Đóng góp bài học
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hero Visual Card -->
+                    <div class="md:col-span-5 flex justify-center">
+                        <div class="glass-card p-6 rounded-3xl shadow-2xl text-slate-800 w-full max-w-md transform hover:rotate-1 transition-transform duration-500 border border-white/60">
+                            <div class="flex items-center justify-between mb-4 border-b pb-3 border-slate-100">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span>
+                                    <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span>
+                                    <span class="w-3 h-3 rounded-full bg-green-400 inline-block"></span>
+                                </div>
+                                <span class="text-xs font-semibold text-brand-blue bg-blue-100 px-3 py-1 rounded-full">Lớp 12 mới nhất</span>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-4 p-3 rounded-2xl bg-blue-50/80 border border-blue-100">
+                                    <div class="w-12 h-12 rounded-xl bg-blue-500 text-white flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 text-sm">Chương 1: Đạo Hàm & Đồ Thị</h4>
+                                        <p class="text-xs text-slate-500">Cực trị, Giá trị Lớn nhất & Nhỏ nhất</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4 p-3 rounded-2xl bg-pink-50/80 border border-pink-100">
+                                    <div class="w-12 h-12 rounded-xl bg-pink-500 text-white flex items-center justify-center text-xl shrink-0">
+                                        <i class="fa-solid fa-cube"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 text-sm">Chương 5: Tọa Độ Không Gian</h4>
+                                        <p class="text-xs text-slate-500">Hệ Oxyz, Mặt phẳng & Đường thẳng</p>
+                                    </div>
+                                </div>
+
+                                <div class="pt-2 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-green-500"></i> Hơn 100+ bài học & chuyên đề tuyển chọn
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Highlights -->
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-100 text-brand-blue flex items-center justify-center text-2xl shrink-0">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-1">Cộng Đồng Đóng Góp</h3>
+                        <p class="text-sm text-slate-500">Mọi giáo viên và học sinh đều có thể chia sẻ các bài giải hay và đề thi mới nhất.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-pink-100 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-pink-100 text-brand-pink flex items-center justify-center text-2xl shrink-0">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-1">Cấu Trúc Rõ Ràng</h3>
+                        <p class="text-sm text-slate-500">Bài học được phân loại chi tiết theo từng chương giúp dễ dàng tra cứu và ôn tập.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-sky-100 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-sky-100 text-brand-sky flex items-center justify-center text-2xl shrink-0">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-1">Quản Lý Minh Bạch</h3>
+                        <p class="text-sm text-slate-500">Đăng nhập tài khoản Google an toàn, dễ dàng quản lý và chỉnh sửa nội dung bài viết cá nhân.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: ĐÓNG GÓP BÀI HỌC -->
+        <section id="section-contribute" class="hidden transition-all duration-300">
+            <div class="max-w-3xl mx-auto bg-white rounded-3xl p-8 sm:p-10 border border-blue-100 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-brand-blue via-purple-500 to-brand-pink"></div>
+
+                <div class="text-center mb-8">
+                    <span class="inline-block px-4 py-1.5 rounded-full bg-pink-50 text-brand-pink font-bold text-xs uppercase tracking-wider mb-2">
+                        <i class="fa-solid fa-heart mr-1"></i> Chia sẻ tri thức
+                    </span>
+                    <h2 class="text-3xl font-extrabold text-slate-800">Đóng Góp Bài Học Mới</h2>
+                    <p class="text-slate-500 text-sm mt-1">Nội dung bạn đóng góp sẽ xuất hiện ngay trong Danh sách bài học cho tất cả mọi người cùng tham khảo.</p>
+                </div>
+
+                <!-- Alert for unauthenticated users -->
+                <div id="contribute-auth-warning" class="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-5 mb-6 flex items-start gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl mt-0.5"></i>
+                    <div>
+                        <h4 class="font-bold text-sm">Bạn chưa đăng nhập</h4>
+                        <p class="text-xs mt-1">Vui lòng đăng nhập tài khoản Google ở góc trên màn hình để đăng tải bài học và quản lý các bài đóng góp của bạn.</p>
+                        <button onclick="handleGoogleSignIn()" class="mt-3 text-xs bg-amber-500 text-white font-bold px-4 py-2 rounded-xl hover:bg-amber-600 transition-colors">
+                            <i class="fa-brands fa-google mr-1"></i> Đăng nhập ngay
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contribution Form -->
+                <form id="lesson-form" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                            <i class="fa-solid fa-heading text-brand-blue mr-1"></i> Tiêu đề bài học / Chuyên đề *
+                        </label>
+                        <input type="text" id="form-title" required placeholder="Ví dụ: Phương pháp giải nhanh bài toán Tiệm cận của hàm số" 
+                            class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all text-sm">
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                                <i class="fa-solid fa-list-ol text-brand-pink mr-1"></i> Chọn Chương *
+                            </label>
+                            <select id="form-chapter" required class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-transparent transition-all text-sm bg-white">
+                                <option value="1">Chương 1: Ứng dụng đạo hàm</option>
+                                <option value="2">Chương 2: Hàm số lũy thừa, mũ & log</option>
+                                <option value="3">Chương 3: Nguyên hàm & Tích phân</option>
+                                <option value="4">Chương 4: Số phức</option>
+                                <option value="5">Chương 5: Phương pháp tọa độ Oxyz</option>
+                                <option value="6">Chương 6: Thống kê & Xác suất</option>
+                                <option value="7">Chương 7: Vectơ trong không gian</option>
+                                <option value="8">Chương 8: Phương pháp tọa độ tổng hợp</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                                <i class="fa-solid fa-link text-brand-sky mr-1"></i> Đường dẫn tài liệu / PDF / Video
+                            </label>
+                            <input type="url" id="form-link" placeholder="https://drive.google.com/... hoặc link YouTube" 
+                                class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-sky focus:border-transparent transition-all text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                            <i class="fa-solid fa-align-left text-brand-blue mr-1"></i> Nội dung tóm tắt / Ghi chú bài học *
+                        </label>
+                        <textarea id="form-content" rows="4" required placeholder="Nhập tóm tắt công thức, phương pháp giải hoặc hướng dẫn học tập tại đây..." 
+                            class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all text-sm"></textarea>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" id="btn-submit-lesson" class="w-full py-4 rounded-2xl bg-gradient-to-r from-brand-pink to-rose-500 text-white font-bold text-base shadow-lg shadow-pink-500/25 hover:opacity-95 transition-all transform active:scale-98 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Đăng Tải Bài Học Ngay</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 3: DANH SÁCH BÀI HỌC THEO CHƯƠNG -->
+        <section id="section-chapters" class="hidden transition-all duration-300 space-y-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-800">Danh Sách Bài Học Toán 12</h2>
+                    <p class="text-slate-500 text-sm mt-1">Nhấp vào từng Chương để khám phá bài giảng & chuyên đề chi tiết</p>
+                </div>
+
+                <!-- Chapter Filter Buttons or Search -->
+                <div class="flex items-center gap-2">
+                    <button onclick="filterChapter('all')" id="filter-all" class="px-4 py-2 rounded-xl text-xs font-bold bg-brand-blue text-white shadow-sm transition-all">
+                        Tất cả chương
+                    </button>
+                    <span class="text-slate-300">|</span>
+                    <span id="lesson-count-badge" class="text-xs font-bold text-brand-pink bg-pink-50 px-3 py-1.5 rounded-xl border border-pink-100">
+                        0 Bài học
+                    </span>
+                </div>
+            </div>
+
+            <!-- Chapter Grid Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5" id="chapters-grid">
+                <!-- Chapters Cards will be generated dynamically -->
+            </div>
+
+            <!-- Selected Chapter Lessons Container -->
+            <div id="lessons-container" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm mt-8">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div id="active-chapter-icon" class="w-10 h-10 rounded-xl bg-blue-100 text-brand-blue flex items-center justify-center text-lg font-bold">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                        </div>
+                        <div>
+                            <h3 id="active-chapter-title" class="text-xl font-bold text-slate-800">Tất Cả Bài Học</h3>
+                            <p id="active-chapter-desc" class="text-xs text-slate-500">Hiển thị các bài đóng góp theo hàng dọc</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vertical Lesson List -->
+                <div id="lesson-list" class="space-y-4">
+                    <!-- Lessons rendered here -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:flex sm:justify-between sm:items-center">
+            <div class="flex items-center justify-center sm:justify-start gap-2 mb-4 sm:mb-0">
+                <span class="w-8 h-8 rounded-lg bg-brand-blue text-white flex items-center justify-center font-bold text-sm">T12</span>
+                <span class="font-bold text-slate-700">Toán 12 Online</span>
+            </div>
+            <p class="text-xs text-slate-500">
+                © 2026 Nền tảng Chia sẻ Kiến thức Toán Lớp 12. Xây dựng cho học sinh toàn quốc.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Firebase Config Modal -->
+    <div id="config-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative border border-slate-100">
+            <button onclick="toggleModal('config-modal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-2">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4 text-brand-blue">
+                <i class="fa-solid fa-sliders text-2xl"></i>
+                <h3 class="text-xl font-bold text-slate-800">Cấu hình Firebase (Tùy chọn)</h3>
+            </div>
+            <p class="text-xs text-slate-500 mb-6">
+                Mặc định web chạy chế độ dữ liệu mẫu LocalStorage. Nếu muốn kết nối Firebase Auth & Firestore thực tế, dán Firebase Config vào bên dưới:
+            </p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Firebase Config JSON / JS Object</label>
+                    <textarea id="firebase-config-input" rows="6" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "app.firebaseapp.com",
+  "projectId": "app-id",
+  "storageBucket": "app.appspot.com",
+  "messagingSenderId": "...",
+  "appId": "..."
+}' class="w-full p-3 font-mono text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-blue focus:outline-none"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button onclick="saveFirebaseConfig()" class="px-5 py-2.5 rounded-xl bg-brand-blue text-white font-bold text-xs hover:bg-blue-600 transition-colors">
+                        Lưu Cấu Hình
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div id="toast-content" class="bg-slate-800 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-green-400"></i>
+            <span id="toast-message">Thông báo thành công</span>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase Modular SDK Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State
+        window.currentUser = null;
+        window.activeChapterFilter = 'all';
+        window.db = null;
+        window.auth = null;
+
+        // Standard 8 Chapters for Math 12
+        const CHAPTERS_DATA = [
+            { id: 1, title: 'Chương 1: Ứng dụng đạo hàm', desc: 'Khảo sát hàm số, Cực trị, Giá trị Lớn nhất - Nhỏ nhất, Tiệm cận', icon: 'fa-chart-line', color: 'from-blue-500 to-indigo-600' },
+            { id: 2, title: 'Chương 2: Lũy thừa, Mũ & Logarithm', desc: 'Hàm số lũy thừa, Hàm số mũ, Logarithm & Phương trình mũ', icon: 'fa-square-root-variable', color: 'from-pink-500 to-rose-600' },
+            { id: 3, title: 'Chương 3: Nguyên hàm & Tích phân', desc: 'Định nghĩa Nguyên hàm, Tích phân & Ứng dụng diện tích, thể tích', icon: 'fa-calculator', color: 'from-sky-500 to-blue-600' },
+            { id: 4, title: 'Chương 4: Số phức', desc: 'Khái niệm số phức, Các phép toán, Tập hợp điểm & Phương trình bậc hai', icon: 'fa-infinity', color: 'from-purple-500 to-pink-600' },
+            { id: 5, title: 'Chương 5: Tọa độ trong không gian Oxyz', desc: 'Hệ tọa độ Oxyz, Phương trình Mặt phẳng, Đường thẳng & Mặt cầu', icon: 'fa-cube', color: 'from-emerald-500 to-teal-600' },
+            { id: 6, title: 'Chương 6: Thống kê & Xác suất', desc: 'Các đặc trưng đo xu thế trung tâm, Xác suất có điều kiện', icon: 'fa-chart-pie', color: 'from-amber-500 to-orange-600' },
+            { id: 7, title: 'Chương 7: Vectơ trong không gian', desc: 'Tích vô hướng, Góc giữa hai vectơ, Vectơ chỉ phương', icon: 'fa-arrows-up-down-left-right', color: 'from-cyan-500 to-blue-500' },
+            { id: 8, title: 'Chương 8: Phương pháp tọa độ tổng hợp', desc: 'Bài toán khoảng cách, Góc & Vị trí tương đối trong không gian', icon: 'fa-shapes', color: 'from-indigo-500 to-purple-600' },
+        ];
+
+        // Fallback Initial Mock Lessons
+        const INITIAL_MOCK_LESSONS = [
+            {
+                id: 'mock-1',
+                title: 'Bí quyết giải nhanh Cực trị của hàm số Bậc 3 và Hàm Trùng Phương',
+                chapterId: 1,
+                content: 'Bài viết tổng hợp các công thức tính nhanh số lượng điểm cực trị, phương trình đường thẳng đi qua 2 điểm cực trị của hàm bậc ba.',
+                link: 'https://youtube.com',
+                authorName: 'Thầy Nguyễn Văn Toán',
+                authorUid: 'teacher-1',
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: 'mock-2',
+                title: 'Phương pháp đổi biến số tính Tích phân nâng cao 8+',
+                chapterId: 3,
+                content: 'Hướng dẫn chi tiết đặt t = u(x) cho các dạng tích phân ẩn, tích phân hàm ẩn liên quan đến đạo hàm.',
+                link: 'https://drive.google.com',
+                authorName: 'Cô Trần Thị Ly',
+                authorUid: 'teacher-2',
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: 'mock-3',
+                title: 'Công thức giải nhanh Viết phương trình Mặt phẳng Oxyz',
+                chapterId: 5,
+                content: 'Tổng hợp 12 dạng toán viết phương trình mặt phẳng đi qua 3 điểm, vuông góc với đường thẳng, tiếp xúc mặt cầu.',
+                link: '',
+                authorName: 'Lê Hoàng Nam (Chuyên Toán)',
+                authorUid: 'student-1',
+                createdAt: new Date().toISOString()
+            }
+        ];
+
+        window.addEventListener('load', async () => {
+            initFirebase();
+            renderChaptersGrid();
+            await loadLessons();
+        });
+
+        // Initialize Firebase if Config exists
+        function initFirebase() {
+            const savedConfig = localStorage.getItem('firebase_config_custom');
+            let config = null;
+
+            if (savedConfig) {
+                try {
+                    config = JSON.parse(savedConfig);
+                } catch(e) {
+                    console.error('Invalid custom Firebase config');
+                }
+            } else if (typeof __firebase_config !== 'undefined') {
+                try {
+                    config = JSON.parse(__firebase_config);
+                } catch(e) {}
+            }
+
+            if (config && config.apiKey) {
+                try {
+                    const app = initializeApp(config);
+                    window.auth = getAuth(app);
+                    window.db = getFirestore(app);
+
+                    onAuthStateChanged(window.auth, (user) => {
+                        window.currentUser = user;
+                        updateUserUI(user);
+                        renderLessons();
+                    });
+                } catch(e) {
+                    console.warn('Firebase init fallback to local state', e);
+                }
+            }
+        }
+
+        // Auth Functions
+        window.handleGoogleSignIn = async function() {
+            if (!window.auth) {
+                // Simulated Login for Demo/LocalStorage mode
+                window.currentUser = {
+                    uid: 'user-demo-123',
+                    displayName: 'Học sinh Demo',
+                    photoURL: 'https://placehold.co/100x100/ec4899/ffffff?text=HS'
+                };
+                updateUserUI(window.currentUser);
+                renderLessons();
+                showToast('Đăng nhập thành công (Chế độ Xem trước)');
+                return;
+            }
+
+            try {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(window.auth, provider);
+                showToast('Đăng nhập Google thành công!');
+            } catch (error) {
+                console.error(error);
+                showToast('Không thể đăng nhập Google: ' + error.message, true);
+            }
+        }
+
+        window.handleSignOut = async function() {
+            if (window.auth) {
+                await signOut(window.auth);
+            }
+            window.currentUser = null;
+            updateUserUI(null);
+            renderLessons();
+            showToast('Đã đăng xuất tài khoản');
+        }
+
+        function updateUserUI(user) {
+            const loggedOutDiv = document.getElementById('auth-logged-out');
+            const loggedInDiv = document.getElementById('auth-logged-in');
+            const warningDiv = document.getElementById('contribute-auth-warning');
+
+            if (user) {
+                loggedOutDiv.classList.add('hidden');
+                loggedInDiv.classList.remove('hidden');
+                loggedInDiv.classList.add('flex');
+
+                document.getElementById('user-name').innerText = user.displayName || 'Học viên';
+                if (user.photoURL) {
+                    document.getElementById('user-avatar').src = user.photoURL;
+                }
+                if (warningDiv) warningDiv.classList.add('hidden');
+            } else {
+                loggedOutDiv.classList.remove('hidden');
+                loggedInDiv.classList.add('hidden');
+                loggedInDiv.classList.remove('flex');
+                if (warningDiv) warningDiv.classList.remove('hidden');
+            }
+        }
+
+        // NAVIGATION LOGIC
+        window.showSection = function(sectionId) {
+            const sections = ['hero', 'contribute', 'chapters'];
+            sections.forEach(s => {
+                const el = document.getElementById(`section-${s}`);
+                const nav = document.getElementById(`nav-${s}`);
+                if (s === sectionId) {
+                    el.classList.remove('hidden');
+                    if (nav) {
+                        nav.classList.add('bg-white', 'text-brand-blue', 'shadow-sm');
+                        nav.classList.remove('text-slate-600');
+                    }
+                } else {
+                    el.classList.add('hidden');
+                    if (nav) {
+                        nav.classList.remove('bg-white', 'text-brand-blue', 'shadow-sm');
+                        nav.classList.add('text-slate-600');
+                    }
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Render Chapter Grid
+        function renderChaptersGrid() {
+            const grid = document.getElementById('chapters-grid');
+            grid.innerHTML = CHAPTERS_DATA.map(ch => `
+                <div onclick="filterChapter(${ch.id})" 
+                     class="group relative bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden transform hover:-translate-y-1">
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${ch.color}"></div>
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${ch.color} text-white flex items-center justify-center text-xl shadow-md">
+                            <i class="fa-solid ${ch.icon}"></i>
+                        </div>
+                        <span class="text-xs font-bold text-slate-400 group-hover:text-brand-pink transition-colors">Chương ${ch.id}</span>
+                    </div>
+                    <h4 class="font-extrabold text-slate-800 text-base mb-1 group-hover:text-brand-blue transition-colors">${ch.title}</h4>
+                    <p class="text-xs text-slate-500 line-clamp-2">${ch.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        // Filter Lessons by Chapter
+        window.filterChapter = function(chapterId) {
+            window.activeChapterFilter = chapterId;
+            showSection('chapters');
+
+            // Update Active Header text
+            const titleEl = document.getElementById('active-chapter-title');
+            const descEl = document.getElementById('active-chapter-desc');
+            const filterAllBtn = document.getElementById('filter-all');
+
+            if (chapterId === 'all') {
+                titleEl.innerText = 'Tất Cả Bài Học';
+                descEl.innerText = 'Danh sách đầy đủ các bài giảng và chuyên đề đóng góp';
+                filterAllBtn.className = "px-4 py-2 rounded-xl text-xs font-bold bg-brand-blue text-white shadow-sm transition-all";
+            } else {
+                const ch = CHAPTERS_DATA.find(c => c.id === chapterId);
+                titleEl.innerText = ch ? ch.title : `Chương ${chapterId}`;
+                descEl.innerText = ch ? ch.desc : '';
+                filterAllBtn.className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all";
+            }
+
+            renderLessons();
+        }
+
+        // Load Lessons from Firestore or LocalStorage
+        async function loadLessons() {
+            let lessons = [];
+
+            if (window.db) {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'toan12-app';
+                    const colRef = collection(window.db, 'artifacts', appId, 'public', 'data', 'lessons');
+                    const snapshot = await getDocs(colRef);
+                    snapshot.forEach(docSnap => {
+                        lessons.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+                } catch(e) {
+                    console.warn('Firestore load skipped/permission denied, falling back to LocalStorage:', e.message);
+                }
+            }
+
+            if (lessons.length === 0) {
+                const local = localStorage.getItem('toan12_lessons');
+                if (local) {
+                    try { lessons = JSON.parse(local); } catch(e){}
+                } else {
+                    lessons = INITIAL_MOCK_LESSONS;
+                    localStorage.setItem('toan12_lessons', JSON.stringify(lessons));
+                }
+            }
+
+            window.allLessons = lessons;
+            renderLessons();
+        }
+
+        // Render Vertical Lesson List
+        function renderLessons() {
+            const listEl = document.getElementById('lesson-list');
+            const badgeEl = document.getElementById('lesson-count-badge');
+            
+            let filtered = window.allLessons || [];
+            if (window.activeChapterFilter !== 'all') {
+                filtered = filtered.filter(l => Number(l.chapterId) === Number(window.activeChapterFilter));
+            }
+
+            badgeEl.innerText = `${filtered.length} Bài học`;
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 bg-pink-50 text-brand-pink rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <h4 class="font-bold text-slate-700">Chưa có bài học nào trong chương này</h4>
+                        <p class="text-xs text-slate-400 mt-1">Hãy là người đầu tiên đóng góp bài học ngay hôm nay!</p>
+                        <button onclick="showSection('contribute')" class="mt-4 px-5 py-2.5 rounded-xl bg-brand-pink text-white text-xs font-bold shadow-md hover:bg-brand-pinkhover transition-colors">
+                            <i class="fa-solid fa-plus-circle mr-1"></i> Đóng góp bài mới
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(lesson => {
+                const isOwner = window.currentUser && (lesson.authorUid === window.currentUser.uid);
+                const chapterObj = CHAPTERS_DATA.find(c => c.id === Number(lesson.chapterId));
+                const chapterName = chapterObj ? `Chương ${chapterObj.id}` : `Chương ${lesson.chapterId}`;
+
+                return `
+                    <div class="p-5 rounded-2xl bg-slate-50/80 hover:bg-blue-50/40 border border-slate-100 hover:border-blue-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group">
+                        <div class="space-y-2 flex-grow">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-2.5 py-1 rounded-lg bg-blue-100 text-brand-blue font-bold text-[11px]">
+                                    ${chapterName}
+                                </span>
+                                <span class="text-xs text-slate-400">
+                                    <i class="fa-regular fa-user mr-1"></i>${lesson.authorName || 'Ẩn danh'}
+                                </span>
+                            </div>
+
+                            <h4 class="font-bold text-slate-800 text-base md:text-lg group-hover:text-brand-blue transition-colors">
+                                ${lesson.title}
+                            </h4>
+
+                            <p class="text-xs md:text-sm text-slate-600 line-clamp-2">
+                                ${lesson.content}
+                            </p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200/60 justify-end">
+                            ${lesson.link ? `
+                                <a href="${lesson.link}" target="_blank" class="px-4 py-2 rounded-xl bg-brand-blue text-white font-semibold text-xs shadow-sm hover:bg-blue-600 transition-colors flex items-center gap-1.5">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    <span>Xem / Tải về</span>
+                                </a>
+                            ` : ''}
+
+                            ${isOwner ? `
+                                <button onclick="deleteLesson('${lesson.id}')" class="px-3 py-2 rounded-xl text-red-500 hover:bg-red-50 border border-red-200 text-xs font-semibold transition-colors flex items-center gap-1" title="Xóa bài đóng góp">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                    <span>Xóa bài</span>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Form Submission
+        window.handleFormSubmit = async function(e) {
+            e.preventDefault();
+
+            if (!window.currentUser) {
+                showToast('Vui lòng đăng nhập Google trước khi đăng bài!', true);
+                return;
+            }
+
+            const title = document.getElementById('form-title').value.trim();
+            const chapterId = document.getElementById('form-chapter').value;
+            const link = document.getElementById('form-link').value.trim();
+            const content = document.getElementById('form-content').value.trim();
+
+            const newLesson = {
+                title,
+                chapterId: Number(chapterId),
+                link,
+                content,
+                authorName: window.currentUser.displayName || 'Người dùng Google',
+                authorUid: window.currentUser.uid,
+                createdAt: new Date().toISOString()
+            };
+
+            const submitBtn = document.getElementById('btn-submit-lesson');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải lên...';
+
+            try {
+                let savedToFirestore = false;
+                if (window.db) {
+                    try {
+                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'toan12-app';
+                        const colRef = collection(window.db, 'artifacts', appId, 'public', 'data', 'lessons');
+                        const docRef = await addDoc(colRef, newLesson);
+                        newLesson.id = docRef.id;
+                        savedToFirestore = true;
+                    } catch (fbErr) {
+                        console.warn('Firestore write permission denied, saving to localStorage:', fbErr.message);
+                    }
+                }
+
+                if (!savedToFirestore) {
+                    newLesson.id = 'local-' + Date.now();
+                }
+
+                if (!window.allLessons) window.allLessons = [];
+                window.allLessons.unshift(newLesson);
+                localStorage.setItem('toan12_lessons', JSON.stringify(window.allLessons));
+
+                document.getElementById('lesson-form').reset();
+                showToast('Đóng góp bài học thành công!');
+                filterChapter(Number(chapterId));
+            } catch(err) {
+                console.error(err);
+                showToast('Lỗi khi lưu bài học: ' + err.message, true);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Đăng Tải Bài Học Ngay</span>';
+            }
+        }
+
+        // Delete Lesson
+        window.deleteLesson = async function(lessonId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa bài học này khỏi danh sách?')) return;
+
+            try {
+                if (window.db && !lessonId.startsWith('mock-') && !lessonId.startsWith('local-')) {
+                    try {
+                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'toan12-app';
+                        const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'lessons', lessonId);
+                        await deleteDoc(docRef);
+                    } catch (fbErr) {
+                        console.warn('Firestore delete permission denied, removing locally:', fbErr.message);
+                    }
+                }
+
+                window.allLessons = window.allLessons.filter(l => l.id !== lessonId);
+                localStorage.setItem('toan12_lessons', JSON.stringify(window.allLessons));
+
+                showToast('Đã xóa bài học thành công');
+                renderLessons();
+            } catch(err) {
+                console.error(err);
+                showToast('Không thể xóa bài học: ' + err.message, true);
+            }
+        }
+
+        // Configuration Modal
+        window.toggleModal = function(id) {
+            const el = document.getElementById(id);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        window.saveFirebaseConfig = function() {
+            const val = document.getElementById('firebase-config-input').value.trim();
+            if (!val) {
+                localStorage.removeItem('firebase_config_custom');
+                showToast('Đã khôi phục cài đặt mặc định');
+                toggleModal('config-modal');
+                return;
+            }
+
+            try {
+                JSON.parse(val);
+                localStorage.setItem('firebase_config_custom', val);
+                showToast('Đã lưu cấu hình! Vui lòng tải lại trang.');
+                setTimeout(() => location.reload(), 1000);
+            } catch(e) {
+                showToast('Chuỗi JSON không hợp lệ!', true);
+            }
+        }
+
+        // Toast Helper
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const content = document.getElementById('toast-content');
+            const messageEl = document.getElementById('toast-message');
+            const iconEl = document.getElementById('toast-icon');
+
+            messageEl.innerText = msg;
+            if (isError) {
+                content.className = "bg-rose-600 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold";
+                iconEl.className = "fa-solid fa-circle-exclamation text-white";
+            } else {
+                content.className = "bg-slate-800 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold";
+                iconEl.className = "fa-solid fa-circle-check text-green-400";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
